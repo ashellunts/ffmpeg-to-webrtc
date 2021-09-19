@@ -12,11 +12,16 @@ func TestRunCommand(t *testing.T) {
 	dataPipe, err := RunCommand("test_program.exe")
 	require.NoError(err)
 
-	program_output := make([]byte, 100)
-	n, err := dataPipe.Read(program_output)
-	require.NoError(err)
-	require.Equal(6, n)
+	program_output := make([]byte, 0)
+	for {
+		tmp := make([]byte, 4)
+		n, err := dataPipe.Read(tmp)
+		if err != nil {
+			break
+		}
+		program_output = append(program_output, tmp[0:n]...)
+	}
 
 	expected := []byte{72, 101, 108, 108, 111, 10}
-	require.Equal(expected, program_output[0:n])
+	require.Equal(expected, program_output)
 }

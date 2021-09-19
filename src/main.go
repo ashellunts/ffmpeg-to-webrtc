@@ -11,11 +11,15 @@ func main() {
 		return
 	}
 
-	program_output := make([]byte, 100)
-	n, err := dataPipe.Read(program_output)
-	if err != nil {
-		return
+	program_output := make([]byte, 0)
+	for {
+		tmp := make([]byte, 4)
+		n, err := dataPipe.Read(tmp)
+		if err != nil {
+			break
+		}
+		program_output = append(program_output, tmp[0:n]...)
 	}
 
-	fmt.Print(program_output[0:n])
+	fmt.Print(program_output)
 }
