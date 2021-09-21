@@ -13,7 +13,6 @@ require (
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/pion/datachannel v1.4.21 // indirect
 	github.com/pion/dtls/v2 v2.0.9 // indirect
-	github.com/pion/example-webrtc-applications/v3 v3.0.4 // indirect
 	github.com/pion/ice/v2 v2.1.12 // indirect
 	github.com/pion/interceptor v0.0.15 // indirect
 	github.com/pion/logging v0.2.2 // indirect
