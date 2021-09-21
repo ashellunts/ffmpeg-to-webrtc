@@ -43,79 +43,77 @@ func main() { //nolint
 
 	iceConnectedCtx, iceConnectedCtxCancel := context.WithCancel(context.Background())
 
-	if true {
-		// Create a video track
-		videoTrack, videoTrackErr := webrtc.NewTrackLocalStaticSample(webrtc.RTPCodecCapability{MimeType: webrtc.MimeTypeH264}, "video", "pion")
-		if videoTrackErr != nil {
-			panic(videoTrackErr)
+	// Create a video track
+	videoTrack, videoTrackErr := webrtc.NewTrackLocalStaticSample(webrtc.RTPCodecCapability{MimeType: webrtc.MimeTypeH264}, "video", "pion")
+	if videoTrackErr != nil {
+		panic(videoTrackErr)
+	}
+
+	rtpSender, videoTrackErr := peerConnection.AddTrack(videoTrack)
+	if videoTrackErr != nil {
+		panic(videoTrackErr)
+	}
+
+	// Read incoming RTCP packets
+	// Before these packets are returned they are processed by interceptors. For things
+	// like NACK this needs to be called.
+	go func() {
+		rtcpBuf := make([]byte, 1500)
+		for {
+			if _, _, rtcpErr := rtpSender.Read(rtcpBuf); rtcpErr != nil {
+				return
+			}
+		}
+	}()
+
+	go func() {
+		dataPipe, err := RunCommand("ffmpeg", os.Args[1:]...)
+
+		if err != nil {
+			panic(err)
 		}
 
-		rtpSender, videoTrackErr := peerConnection.AddTrack(videoTrack)
-		if videoTrackErr != nil {
-			panic(videoTrackErr)
+		h264, h264Err := h264reader.NewReader(dataPipe)
+		if h264Err != nil {
+			panic(h264Err)
 		}
 
-		// Read incoming RTCP packets
-		// Before these packets are returned they are processed by interceptors. For things
-		// like NACK this needs to be called.
-		go func() {
-			rtcpBuf := make([]byte, 1500)
-			for {
-				if _, _, rtcpErr := rtpSender.Read(rtcpBuf); rtcpErr != nil {
-					return
-				}
+		// Wait for connection established
+		<-iceConnectedCtx.Done()
+
+		// Send our video file frame at a time. Pace our sending so we send it at the same speed it should be played back as.
+		// This isn't required since the video is timestamped, but we will such much higher loss if we send all at once.
+		//
+		// It is important to use a time.Ticker instead of time.Sleep because
+		// * avoids accumulating skew, just calling time.Sleep didn't compensate for the time spent parsing the data
+		// * works around latency issues with Sleep (see https://github.com/golang/go/issues/44343)
+		spsAndPpsCache := []byte{}
+		ticker := time.NewTicker(h264FrameDuration)
+		for ; true; <-ticker.C {
+			nal, h264Err := h264.NextNAL()
+			if h264Err == io.EOF {
+				fmt.Printf("All video frames parsed and sent")
+				os.Exit(0)
 			}
-		}()
-
-		go func() {
-			dataPipe, err := RunCommand("ffmpeg", os.Args[1:]...)
-
-			if err != nil {
-				panic(err)
-			}
-
-			h264, h264Err := h264reader.NewReader(dataPipe)
 			if h264Err != nil {
 				panic(h264Err)
 			}
 
-			// Wait for connection established
-			<-iceConnectedCtx.Done()
+			nal.Data = append([]byte{0x00, 0x00, 0x00, 0x01}, nal.Data...)
 
-			// Send our video file frame at a time. Pace our sending so we send it at the same speed it should be played back as.
-			// This isn't required since the video is timestamped, but we will such much higher loss if we send all at once.
-			//
-			// It is important to use a time.Ticker instead of time.Sleep because
-			// * avoids accumulating skew, just calling time.Sleep didn't compensate for the time spent parsing the data
-			// * works around latency issues with Sleep (see https://github.com/golang/go/issues/44343)
-			spsAndPpsCache := []byte{}
-			ticker := time.NewTicker(h264FrameDuration)
-			for ; true; <-ticker.C {
-				nal, h264Err := h264.NextNAL()
-				if h264Err == io.EOF {
-					fmt.Printf("All video frames parsed and sent")
-					os.Exit(0)
-				}
-				if h264Err != nil {
-					panic(h264Err)
-				}
-
-				nal.Data = append([]byte{0x00, 0x00, 0x00, 0x01}, nal.Data...)
-
-				if nal.UnitType == h264reader.NalUnitTypeSPS || nal.UnitType == h264reader.NalUnitTypePPS {
-					spsAndPpsCache = append(spsAndPpsCache, nal.Data...)
-					continue
-				} else if nal.UnitType == h264reader.NalUnitTypeCodedSliceIdr {
-					nal.Data = append(spsAndPpsCache, nal.Data...)
-					spsAndPpsCache = []byte{}
-				}
-
-				if h264Err = videoTrack.WriteSample(media.Sample{Data: nal.Data, Duration: time.Second}); h264Err != nil {
-					panic(h264Err)
-				}
+			if nal.UnitType == h264reader.NalUnitTypeSPS || nal.UnitType == h264reader.NalUnitTypePPS {
+				spsAndPpsCache = append(spsAndPpsCache, nal.Data...)
+				continue
+			} else if nal.UnitType == h264reader.NalUnitTypeCodedSliceIdr {
+				nal.Data = append(spsAndPpsCache, nal.Data...)
+				spsAndPpsCache = []byte{}
 			}
-		}()
-	}
+
+			if h264Err = videoTrack.WriteSample(media.Sample{Data: nal.Data, Duration: time.Second}); h264Err != nil {
+				panic(h264Err)
+			}
+		}
+	}()
 
 	// Set the handler for ICE connection state
 	// This will notify you when the peer has connected/disconnected
