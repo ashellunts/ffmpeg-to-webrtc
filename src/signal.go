@@ -1,3 +1,5 @@
+//copied from https://github.com/pion/example-webrtc-applications/blob/master/internal/signal/signal.go
+
 package main
 
 import (
