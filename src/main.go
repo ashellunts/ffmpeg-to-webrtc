@@ -17,9 +17,6 @@ import (
 )
 
 const (
-	audioFileName     = "output.ogg"
-	videoFileName     = "output.h264"
-	oggPageDuration   = time.Millisecond * 20
 	h264FrameDuration = time.Millisecond * 33
 )
 
