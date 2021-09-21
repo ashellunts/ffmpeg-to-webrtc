@@ -15,7 +15,7 @@ In the jsfiddle the top textarea is your browser's SDP, copy that and:
 #### Windows
 1. Paste the SessionDescription into a file `SDP`.
 2. Run `go run . <ffmpeg command line options> - < SDP`
-3. Note dash after ffmpeg options. It makes ffmpeg to write output to stdout. Example app will read stream from ffmpeg stdout.
+3. Note dash after ffmpeg options. It makes ffmpeg to write output to stdout. ffmpeg-to-webrtc will read stream from ffmpeg stdout.
 
 ### Input SessionDescription from ffmpeg-to-webrtc into your browser
 When you see SDP in base64 format printed it means that SDP is already in copy buffer. So you can go to jsfiddle page and paste that into second text area
