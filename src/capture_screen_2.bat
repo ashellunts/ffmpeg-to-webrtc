@@ -1,0 +1,2 @@
+REM https://github.com/rdp/screen-capture-recorder-to-video-windows-free is required
+go run . -rtbufsize 100M -f dshow -i video="screen-capture-recorder" -vcodec h264_qsv -bsf:v h264_mp4toannexb -b:v 1M -max_delay 0 -bf 0 -f h264 -
