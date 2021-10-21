@@ -4,6 +4,7 @@ go 1.17
 
 require (
 	github.com/atotto/clipboard v0.1.4
+	github.com/pion/webrtc/v2 v2.2.26
 	github.com/pion/webrtc/v3 v3.1.0-beta.3
 	github.com/stretchr/testify v1.7.0
 )
