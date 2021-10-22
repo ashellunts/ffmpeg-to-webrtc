@@ -9,7 +9,7 @@ import (
 func TestRunCommand(t *testing.T) {
 	require := require.New(t)
 
-	dataPipe, err := RunCommand("test_program.exe")
+	dataPipe, _, err := RunCommand("test_program.exe")
 	require.NoError(err)
 
 	program_output := make([]byte, 0)

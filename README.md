@@ -16,7 +16,7 @@ In the jsfiddle the top textarea is your browser's SDP, copy that to clipboard.
 1. `cd src`
 1. Paste the SDP into a file `src/SDP.txt`.
 2. Make sure ffmpeg in your PATH and golang is installed.
-3. Run `go run . <ffmpeg command line options> - < SDP.txt`
+3. Run `go run . -i output.ogg -vn -c:a libopus -page_duration 20000 -f ogg pipe:1 < sdp.txt`
 4. Note dash after ffmpeg options. It makes ffmpeg to write output to stdout. The app will read h264 stream from ffmpeg stdout.
 5. ffmpeg output format should be h264. Browsers don't support all h264 profiles so it may not always work. Here is an example of format that works: `-pix_fmt yuv420p -c:v libx264 -bsf:v h264_mp4toannexb -b:v 2M -max_delay 0 -bf 0 -f h264`.
 
@@ -25,28 +25,3 @@ When you see SDP in base64 format printed it means that SDP is already in clipbo
 
 ### Hit 'Start Session' in jsfiddle
 A video should start playing in your browser below the input boxes.
-
-## Examples (windows)
-### Share camera stream
-```go run . -rtbufsize 100M -f dshow -i video="PUT_DEVICE_NAME" -pix_fmt yuv420p -c:v libx264 -bsf:v h264_mp4toannexb -b:v 2M -max_delay 0 -bf 0 -f h264 - < SDP```. 
-There is a delay of several seconds. Should be possible to fix it with better ffmpeg configuration.
-
-To check list of devices: `ffmpeg -list_devices true -f dshow -i dummy`.  
-It is possible also to set a resolution and a format, for example `-pixel_format yuyv422 -s 640x480`.
-Possible formats: `ffmpeg -list_options true -f dshow -i video=PUT_DEVICE_NAME`.
-### Share screen or window
-See `.bat` files in src folder
-
-## Linux, macOS
-
-Should work on other operating systems, though I haven't tried.
-
-## Feature requests
-
-Open an issue, I will try to help.
-
-
-## Troubleshooting
-
-See this issue for some tips and possible problems
-https://github.com/ashellunts/ffmpeg-to-webrtc/issues/1
