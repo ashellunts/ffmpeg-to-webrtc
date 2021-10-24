@@ -42,9 +42,3 @@ Should work on other operating systems, though I haven't tried.
 ## Feature requests
 
 Open an issue, I will try to help.
-
-
-## Troubleshooting
-
-See this issue for some tips and possible problems
-https://github.com/ashellunts/ffmpeg-to-webrtc/issues/1
