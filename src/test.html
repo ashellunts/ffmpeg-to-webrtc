@@ -1,0 +1,97 @@
+<html>
+	<head>
+		<title>FFMPEG to WebRTC demo</title>
+		<link rel="stylesheet" href="./styles.css">
+	</head>
+		<script>
+				/* eslint-env browser */
+
+				let pc = new RTCPeerConnection({
+				  iceServers: [{
+					urls: 'stun:stun.l.google.com:19302'
+				  }]
+				})
+				let log = msg => {
+				  document.getElementById('div').innerHTML += msg + '<br>'
+				}
+
+				pc.ontrack = function(event) {
+				  var el = document.createElement(event.track.kind)
+				  el.srcObject = event.streams[0]
+				  el.autoplay = true
+				  el.controls = true
+
+				  document.getElementById('remoteVideos').appendChild(el)
+				}
+
+				pc.oniceconnectionstatechange = e => log(pc.iceConnectionState)
+				pc.onicecandidate = event => {
+				  if (event.candidate === null) {
+					document.getElementById('localSessionDescription').value = btoa(JSON.stringify(pc.localDescription))
+				  }
+				}
+
+				// Offer to receive 1 audio, and 1 video track
+				pc.addTransceiver('video', {
+				  'direction': 'sendrecv'
+				})
+				pc.addTransceiver('audio', {
+				  'direction': 'sendrecv'
+				})
+
+				pc.createOffer().then(d => pc.setLocalDescription(d)).catch(log)
+
+				window.startSession = () => {
+				  let sd = document.getElementById('remoteSessionDescription').value
+				  if (sd === '') {
+					return alert('Session Description must not be empty')
+				  }
+
+				  try {
+					pc.setRemoteDescription(new RTCSessionDescription(JSON.parse(atob(sd))))
+				  } catch (e) {
+					alert(e)
+				  }
+				}
+
+				window.copySDP = () => {
+				  let browserSDP = document.getElementById('localSessionDescription')
+
+				  browserSDP.focus();
+				  browserSDP.select();
+
+				  try {
+					var successful = document.execCommand('copy');
+					var msg = successful ? 'successful' : 'unsuccessful';
+					log('Copying SDP was ' + msg);
+				  } catch (err) {
+					log('Oops, unable to copy SDP ' + err);
+				  }
+				}
+		</script>
+	<body>
+			Browser SDP
+			<br />
+			<textarea id="localSessionDescription" readonly="true"></textarea>
+			<br />
+			<button onclick="window.copySDP()">
+			  Copy browser SDP to clipboard
+			</button>
+
+			<br />
+			<br />
+			<br />
+
+			Application SDP<br />
+			<textarea id="remoteSessionDescription"></textarea> <br />
+			<button onclick="window.startSession()"> Start Session </button><br />
+
+			<br />
+
+			Video<br />
+			<div id="remoteVideos"></div> <br />
+
+			Logs<br />
+			<div id="div"></div>
+	</body>
+</html>
