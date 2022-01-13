@@ -1,4 +1,4 @@
-# ffmpeg-to-webrtc
+# ffmpeg-to-webrtc (ARCHIVED REPOSITORY)
 
 ffmpeg-to-webrtc demonstrates how to send video from ffmpeg to your browser using [pion](https://github.com/pion/webrtc).
 
@@ -38,7 +38,3 @@ See `.bat` files in src folder
 ## Linux, macOS
 
 Should work on other operating systems, though I haven't tried.
-
-## Feature requests
-
-Open an issue, I will try to help.
