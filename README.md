@@ -1,4 +1,4 @@
-# ffmpeg-to-webrtc (ARCHIVED REPOSITORY)
+# ffmpeg-to-webrtc
 
 ffmpeg-to-webrtc demonstrates how to send video from ffmpeg to your browser using [pion](https://github.com/pion/webrtc).
 
