@@ -69,6 +69,7 @@ func main() { //nolint
 		if err != nil {
 			panic(err)
 		}
+		defer dataPipe.Close()
 
 		h264, h264Err := h264reader.NewReader(dataPipe)
 		if h264Err != nil {
